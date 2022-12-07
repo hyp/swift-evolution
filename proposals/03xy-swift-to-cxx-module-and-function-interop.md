@@ -1,18 +1,12 @@
-# Bridging Swift modules and top-level functions to C++
-
-*   Proposal: [SE-03xy](03xy-swift-to-cxx-module-and-function-interop.md)
-*   Authors: [Alex Lorenz](https://github.com/hyp)
-*   Review Manager:
-*   Status: 
-*   Implementation: <TODO> Implemented on main as experimental feature (requires `-enable-experimental-cxx-interop` flag)
-
 ## Introduction
 
 Swift-to-C++ interoperability requires C++ code to import Swift APIs into C++ in order
-to be able to call them. Per the [vision document](), Swift-to-C++ interoperability feature is modeled
+to be able to call them. Per the [vision document](TODO), Swift-to-C++ interoperability feature is modeled
 on the existing Objective-C interoperability feature, as it uses the same generated header file in order to represent Swift APIs of a specific Swift module in C++. This proposal presents this header-based user model for Swift-to-C++ interoperability and talks about how it differs to the user model of Objective-C interoperability. It also describes how Swift module namespacing is handled when Swift APIs are bridged to C++. Finally, this proposal describes how top-level synchronous Swift functions that use primitive types in their signature are represented in the C++ section of the generated header file.
 
 This proposal is the initial proposal for Swift-to-C++ interoperability feature of Swift. As such, it builds a foundation which future proposals will use to describe how different Swift language constructs and API patterns get mapped to C++. Certain design decisions presented in the proposal will be revisited in the future, <TODO: specific list>, and as such this proposal does not present the final design for the foundation layer of Swift-to-C++ interoperability.
+
+Swift-evolution thread: [Pitch #1](TODO)
 
 ## Proposed solution
 
@@ -24,6 +18,9 @@ Rename the existing `-emit-objc-header` Swift compiler flag to `-emit-clang-head
 that the header file that Swift generates provides interface for Clang-based languages like Objective-C, C and C++, instead of just providing an Objective-C-based interface for a Swift module.
 
 Map each Swift module to a C++ `namespace` declaration to provide namespacing for Swift APIs in C++.
+
+TODO: Describe your solution to the problem. Provide examples and describe how they work. Show how your solution is better than current workarounds: is it cleaner, safer, or more efficient?
+
 
 ### Header generation
 
@@ -83,7 +80,7 @@ As such,
 The initial user model presented in this proposal intentionally limits the set of Swift APIs
 exposed to C++. This decision allows early adopters of Swift-to-C++ interoperability
 to have precise control of the generated C++ interface. The experimental implementation
-requires that the APIs that the Swift API author wants to expose to C++ are annotated with the [experimental `@expose` attribute](https://forums.swift.org/t/formalizing-cdecl/40677/50) <TODO>.
+requires that the APIs that the Swift API author wants to expose to C++ are annotated with the [experimental `@expose` attribute](https://forums.swift.org/t/formalizing-cdecl/40677/50) <TODO is this good>.
 This attribute will be pitched to Swift evolution in a future proposal. Since this attribute
 is not covered by this proposal, the Swift code samples presented in this proposal omit it from
 the Swift declarations in those samples.
@@ -93,7 +90,37 @@ to expose any public Swift API in a Swift module as long as it's actually
 representable in C++. As such, the decision to require an explicit annotation
 to expose a Swift API to C++ might be revisited in the future.
 
-#### Header naming recommendations
+#### Generated header name
 
-The header named the "Module-Swift.h". Maybe "SwiftModules/ModuleName".
-This proposal is agnostic .
+Swift users can choose the file name of the generated
+header using the `-emit-clang-header-path` flag. The recommended naming
+scheme for such header file follows the currently recommended naming scheme
+for Objective-C headers, i.e. `ModuleName-Swift.h"`. This recommended naming
+scheme might get revisited in the future.
+
+### Module namespacing in C++
+
+The generated C++ code that represents exposed Swift APIs in a module is placed
+into a C++ `namespace` declaration. The name of the `namespace` declaration is
+identical to the Swift module name. For example, a Swift module `SwiftForTheWin`
+maps to a C++ namespace with the same name, as represented by this sample snippet
+from the generated header file:
+
+```
+#ifdef __cplusplus
+
+namespace SwiftForTheWin {
+
+// C++ declarations representing Swift APIs in the 'SwiftForTheWin' module.
+
+} // namespace SwiftForTheWin
+
+#endif // __cplusplus
+```
+
+#### The Swift standard library module
+
+The Swift standard library module uses a different naming scheme for its corresponding C++
+namespace. Instead of using the original `Swift` module name, its corresponding C++
+namespace uses `swift` name instead. The use of lowercase name here makes it
+easier to access Swift APIs like `Array` in a consistent manner with C++ conventions.
