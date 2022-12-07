@@ -1,3 +1,11 @@
+# Bridging Swift modules and top-level functions to C++
+
+*   Proposal: [SE-03xy](03xy-swift-to-cxx-module-and-function-interop.md)
+*   Authors: [Alex Lorenz](https://github.com/hyp)
+*   Review Manager:
+*   Status: 
+*   Implementation: <TODO> Implemented on main as experimental feature (requires `-enable-experimental-cxx-interop` flag)
+
 ## Introduction
 
 Swift-to-C++ interoperability requires C++ code to import Swift APIs into C++ in order
